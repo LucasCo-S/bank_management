@@ -1,61 +1,55 @@
--- Vou separar os arquivos em "Schema" (criação e modificação de tabelas), "Data" (inserção, deleção e etc) e "Queries" (consultas no banco de dados)
 CREATE DATABASE IF NOT EXISTS sistema_financeiro;
 USE sistema_financeiro;
 
+CREATE TABLE endereco (
+	id_Endereco INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+	rua VARCHAR(100) NOT NULL,
+    numero VARCHAR(10) NOT NULL,
+    cidade VARCHAR(50) NOT NULL,
+    estado VARCHAR(2) NOT NULL,
+    cep VARCHAR(10) NOT NULL,
+    bairro VARCHAR(127) NOT NULL
+);
+
 CREATE TABLE cliente (
 	id_Cliente INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(255),
-    CPF VARCHAR(11) UNIQUE,
-    data_Nascimento DATE,
-    telefone VARCHAR(20),
-    endereco INT,
+    nome VARCHAR(255) NOT NULL,
+    CPF VARCHAR(11) NOT NULL UNIQUE,
+    data_Nascimento DATE NOT NULL,
+    id_endereco INT NOT NULL,
     
-    -- Cliente mora em Endereço
-    CONSTRAINT fk_EnderecoCliente FOREIGN KEY (endereco) REFERENCES Endereco (id_Endereco)
-	ON UPDATE CASCADE ON DELETE NO ACTION
+    CONSTRAINT fk_EnderecoCliente FOREIGN KEY (id_endereco) REFERENCES Endereco(id_Endereco)
+	ON UPDATE CASCADE ON DELETE NO ACTION,
 );
 
 CREATE TABLE dependente (
 	id_dependente INT UNSIGNED AUTO_INCREMENT NOT NULL,
     id_cliente INT UNSIGNED NOT NULL,
-    parentesco VARCHAR(255),
-    data_Nascimento DATE,
-    nome VARCHAR(255),
+    parentesco VARCHAR(255) NOT NULL,
+    data_Nascimento DATE NOT NULL,
+    nome VARCHAR(255) NOT NULL,
     
-    -- Cliente pode ter Dependente
     CONSTRAINT fk_ClienteDependente FOREIGN KEY (id_cliente) REFERENCES Cliente (id_Cliente)
 	ON UPDATE CASCADE ON DELETE CASCADE
 );
 
-CREATE TABLE endereco (
-	id_Endereco INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-	rua VARCHAR(100),
-    numero VARCHAR(10),
-    cidade VARCHAR(50),
-    estado VARCHAR(2),
-    cep VARCHAR(10)
+CREATE TABLE agencia (
+	id_Agencia INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nome_Agencia VARCHAR(255) NOT NULL,
+    endereco_Agencia INT NOT NULL,
+    
+    CONSTRAINT fk_EnderecoAgencia FOREIGN KEY (endereco_Agencia) REFERENCES Endereco (id_Endereco)
+    ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE gerente (
 	id_Gerente INT UNSIGNED PRIMARY KEY,
-    nome VARCHAR (255),
-    CPF VARCHAR(11),
-    telefone VARCHAR(20),
+    nome VARCHAR (255) NOT NULL,
+    CPF VARCHAR(11) NOT NULL,
     id_Agencia INT NOT NULL,
     
-    -- Gerente atua em agencia
     CONSTRAINT fk_AgenciaGerente FOREIGN KEY (id_Agencia) REFERENCES Agencia (id_Agencia)
     ON UPDATE CASCADE ON DELETE RESTRICT
-);
-
-CREATE TABLE agencia (
-	id_Agencia INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    nome_Agencia VARCHAR(255),
-    endereco_Agencia INT NOT NULL,
-    
-    -- Agencia tem Endereço
-    CONSTRAINT fk_EnderecoAgencia FOREIGN KEY (endereco_Agencia) REFERENCES Endereco (id_Endereco)
-    ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE conta (
@@ -66,7 +60,6 @@ CREATE TABLE conta (
     id_Cliente INT NOT NULL,
     id_agencia INT UNSIGNED NOT NULL,
     
-    -- Cliente possui Conta
     CONSTRAINT fk_ClienteConta FOREIGN KEY (id_Cliente) REFERENCES Cliente (id_Cliente)
     ON UPDATE CASCADE ON DELETE RESTRICT,
     CONSTRAINT FK_ContaAgen FOREIGN KEY (id_agencia) REFERENCES agencia(id_agencia)
@@ -106,7 +99,7 @@ CREATE TABLE produtoFinanceiro(
     tipoProduto TINYINT UNSIGNED NOT NULL
 );
 
-CREATE TABLE seguro(
+CREATE TABLE prodFin_seguro(
 	id_produtoFinanceiro INT UNSIGNED PRIMARY KEY,
 	valorSegurado DECIMAL(11, 2) NOT NULL,
 	tipoCobertura VARCHAR(127) NOT NULL,
@@ -116,7 +109,7 @@ CREATE TABLE seguro(
     ON UPDATE CASCADE ON DELETE RESTRICT
 );
 
-CREATE TABLE emprestimo(
+CREATE TABLE prodFin_emprestimo(
 	id_produtoFinanceiro INT UNSIGNED PRIMARY KEY,
     valorEmprestimo DECIMAL(11,2) NOT NULL,
     juros DECIMAL (6,2) NOT NULL,
@@ -126,7 +119,7 @@ CREATE TABLE emprestimo(
     ON UPDATE CASCADE ON DELETE RESTRICT
 );
 
-CREATE TABLE investimento(
+CREATE TABLE prodFin_investimento(
 	id_produtoFinanceiro INT UNSIGNED PRIMARY KEY,
     taxaRetorno DECIMAL(6,2) NOT NULL,
     prazoResgate DATE NOT NULL,
@@ -150,7 +143,7 @@ CREATE TABLE pagamento(
     ON UPDATE CASCADE ON DELETE RESTRICT
 );
 
-CREATE TABLE pix(
+CREATE TABLE pag_pix(
 	id_pagamento INT UNSIGNED PRIMARY KEY,
 	chaveOrg VARCHAR(255) NOT NULL,
     chaveDest VARCHAR(255) NOT NULL,
@@ -159,7 +152,7 @@ CREATE TABLE pix(
     ON UPDATE CASCADE ON DELETE RESTRICT
 );
 
-CREATE TABLE boleto(
+CREATE TABLE pag_boleto(
 	id_pagamento INT UNSIGNED PRIMARY KEY,
 	codBarras VARCHAR(127) NOT NULL,
     dataVencimento DATE NOT NULL,
@@ -192,6 +185,15 @@ CREATE TABLE aplicacao (
     CONSTRAINT FK_AplicacaoCliente FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente)
     ON UPDATE CASCADE ON DELETE RESTRICT,
     CONSTRAINT FK_AplicacaoProd FOREIGN KEY (id_produtoFinanceiro) REFERENCES produtoFinanceiro(id_produtoFinanceiro)
+    ON UPDATE CASCADE ON DELETE RESTRICT
+);
+
+CREATE TABLE contato (
+    id_cliente INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    telefone VARCHAR(17),
+    email VARCHAR(127),
+
+    CONSTRAINT FK_ContatoCliente FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente)
     ON UPDATE CASCADE ON DELETE RESTRICT
 );
 
